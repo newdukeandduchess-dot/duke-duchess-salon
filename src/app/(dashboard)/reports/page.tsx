@@ -133,7 +133,7 @@ export default function ReportsPage() {
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 ml-1">Staff / Stylist</label>
-              <Select value={filters.staffCode} onValueChange={(val) => setFilters({...filters, staffCode: val})}>
+              <Select value={filters.staffCode} onValueChange={(val) => setFilters({...filters, staffCode: val || "all"})}>
                 <SelectTrigger className="bg-white">
                   <SelectValue placeholder="All Staff" />
                 </SelectTrigger>
@@ -147,7 +147,7 @@ export default function ReportsPage() {
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 ml-1">Payment Method</label>
-              <Select value={filters.paymentMethod} onValueChange={(val) => setFilters({...filters, paymentMethod: val})}>
+              <Select value={filters.paymentMethod} onValueChange={(val) => setFilters({...filters, paymentMethod: val || "all"})}>
                 <SelectTrigger className="bg-white">
                   <SelectValue placeholder="All Methods" />
                 </SelectTrigger>

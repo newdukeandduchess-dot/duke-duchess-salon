@@ -6,11 +6,12 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
-    const appointment = await Appointment.findById(params.id)
+    const { id } = await params;
+    const appointment = await Appointment.findById(id)
       .populate('customer')
       .populate('staff')
       .populate('services');
@@ -26,7 +27,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -36,7 +37,8 @@ export async function PUT(
 
     const body = await request.json();
     await connectToDatabase();
-    const appointment = await Appointment.findByIdAndUpdate(params.id, body, { new: true });
+    const { id } = await params;
+    const appointment = await Appointment.findByIdAndUpdate(id, body, { new: true });
     
     if (!appointment) {
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
@@ -49,7 +51,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -58,7 +60,8 @@ export async function DELETE(
     }
 
     await connectToDatabase();
-    const appointment = await Appointment.findByIdAndDelete(params.id);
+    const { id } = await params;
+    const appointment = await Appointment.findByIdAndDelete(id);
     
     if (!appointment) {
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });

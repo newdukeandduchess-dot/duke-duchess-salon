@@ -166,7 +166,7 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val || "services")} className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <TabsList>
             <TabsTrigger value="services">Services</TabsTrigger>

@@ -383,18 +383,22 @@ export default function POSPage() {
         total: item.price * item.qty,
         staffId: item.staffId,
         staffName: item.staffName,
-        staffCode: item.staffCode
+        staffCode: item.staffCode,
+        notes: item.notes
       }));
 
       if (addOnServices > 0) {
         items.push({
-          itemType: 'service' as any, // Bypass cached schema enum error
-          itemId: "000000000000000000000000", // Bypass cached schema required error
+          itemType: 'service' as any, 
+          itemId: "000000000000000000000000",
           name: "Add-On Services",
           quantity: 1,
           price: addOnServices,
           total: addOnServices,
-          notes: addOnNotes
+          notes: addOnNotes,
+          staffId: "",
+          staffName: "",
+          staffCode: ""
         });
       }
 
@@ -431,7 +435,6 @@ export default function POSPage() {
       // Clear State
       setCart([]);
       setDiscountPercent(0);
-      setDiscountRupees(0);
       setAddOnServices(0);
       setAddOnNotes("");
     } catch (error: any) {
@@ -666,7 +669,7 @@ export default function POSPage() {
                         <span className="text-[10px] text-muted-foreground font-medium">Stylist:</span>
                         <Select 
                           value={item.staffCode} 
-                          onValueChange={(val) => updateItemStaff(item.cartItemId, val)}
+                          onValueChange={(val) => updateItemStaff(item.cartItemId, val || "")}
                         >
                           <SelectTrigger className="h-6 text-[10px] py-0 px-2 w-[100px] bg-white">
                             <SelectValue placeholder="Code" />
