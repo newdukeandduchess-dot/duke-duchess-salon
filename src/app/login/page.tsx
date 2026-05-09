@@ -13,7 +13,7 @@ import { Scissors } from "lucide-react";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("admin@duke.com");
-  const [password, setPassword] = useState("admin123");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -66,6 +66,7 @@ export default function LoginPage() {
                 placeholder="admin@duke.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>
@@ -76,6 +77,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
             </div>

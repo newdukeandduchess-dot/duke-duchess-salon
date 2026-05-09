@@ -240,7 +240,15 @@ export default function POSPage() {
     doc.setFontSize(10);
     doc.setTextColor(0);
     doc.text(`Invoice No: ${invoiceData.invoiceNumber || 'INV-TEMP'}`, margin, y);
-    doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, pageW - margin, y, { align: 'right' });
+    const dateStr = new Date(invoiceData.createdAt || Date.now()).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    doc.text(`Date: ${dateStr}`, pageW - margin, y, { align: 'right' });
 
     // ── Bill To ────────────────────────────────────────────
     y += 10;
@@ -356,8 +364,22 @@ export default function POSPage() {
 
   const handleWhatsAppShare = () => {
     if (!lastInvoice || !selectedCustomer) return;
-    const billUrl = `${window.location.origin}/bill/${lastInvoice._id}`;
-    const message = `*NEW DUKE %26 DUCHESS INVOICE*%0A%0AHello ${selectedCustomer.name},%0A%0AThank you for visiting us. Your digital bill is ready!%0A%0A*View your bill here:* ${billUrl}%0A%0A*Invoice:* ${lastInvoice.invoiceNumber}%0A*Total Amount:* ₹${lastInvoice.total.toFixed(2)}%0A*Date:* ${new Date().toLocaleDateString()}%0A%0A_Thank you, Visit Again!_`;
+    
+    // Format items list
+    const itemsList = lastInvoice.items
+      .map((item: any) => `- ${item.name} (x${item.quantity}): ₹${item.total}`)
+      .join('%0A');
+
+    const dateTime = new Date().toLocaleString('en-IN', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true 
+    });
+
+    const message = `*NEW DUKE %26 DUCHESS INVOICE*%0A%0AHello ${selectedCustomer.name},%0A%0AThank you for visiting us. Your invoice details are below:%0A%0A*Invoice:* ${lastInvoice.invoiceNumber}%0A*Date %26 Time:* ${dateTime}%0A%0A*Items:*%0A${itemsList}%0A%0A*Total Amount:* ₹${lastInvoice.total.toFixed(2)}%0A%0A_Thank you, Visit Again!_`;
     const whatsappUrl = `https://wa.me/91${selectedCustomer.phone}?text=${message}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -462,9 +484,9 @@ export default function POSPage() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-10rem)] overflow-hidden">
+    <div className="flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-10rem)] lg:overflow-hidden overflow-y-auto pb-20 lg:pb-0">
       {/* Left Area: Catalog & Customer */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-4 lg:overflow-hidden min-h-[500px] lg:min-h-0">
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Billing Center</h1>
@@ -623,7 +645,7 @@ export default function POSPage() {
       </div>
 
       {/* Right Area: Cart */}
-      <Card className="w-full lg:w-[500px] flex flex-col shadow-xl border-primary/10 h-full overflow-hidden">
+      <Card className="w-full lg:w-[500px] flex flex-col shadow-xl border-primary/10 lg:h-full overflow-hidden min-h-[400px] lg:min-h-0">
         <CardHeader className="py-2 px-4 border-b bg-muted/20 shrink-0">
           <CardTitle className="flex justify-between items-center text-sm">
             <div className="flex items-center gap-2">

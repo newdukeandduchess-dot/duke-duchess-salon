@@ -328,8 +328,15 @@ export default function ReportsPage() {
                   {data.invoices.map((inv: any) => (
                     <TableRow key={inv._id} className="hover:bg-slate-50 transition-colors">
                       <TableCell className="font-bold text-slate-900">{inv.invoiceNumber}</TableCell>
-                      <TableCell className="text-slate-500 text-sm">
-                        {new Date(inv.createdAt).toLocaleDateString()}
+                      <TableCell className="text-slate-500 text-[13px] font-medium">
+                        {new Date(inv.createdAt).toLocaleString('en-IN', {
+                          day: 'numeric',
+                          month: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
                       </TableCell>
                       <TableCell>
                         <p className="font-bold text-slate-800 text-sm">{inv.customer?.name || "Guest"}</p>
