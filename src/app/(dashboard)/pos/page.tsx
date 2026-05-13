@@ -362,10 +362,28 @@ export default function POSPage() {
     doc.save(`${lastInvoice.invoiceNumber || 'Invoice'}.pdf`);
   };
 
-  const handleWhatsAppShare = () => {
+  const handleWhatsAppShare = async () => {
     if (!lastInvoice || !selectedCustomer) return;
     
-    // Format items list
+    try {
+      // Try using the Web Share API first (best for mobile)
+      const doc = generatePDF(lastInvoice, selectedCustomer);
+      const pdfBlob = doc.output('blob');
+      const pdfFile = new File([pdfBlob], `${lastInvoice.invoiceNumber || 'Invoice'}.pdf`, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          files: [pdfFile],
+          title: `Invoice #${lastInvoice.invoiceNumber}`,
+          text: `Hello ${selectedCustomer.name}, here is your invoice from New Duke & Duchess Salon.`,
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Error sharing PDF:", error);
+    }
+
+    // Fallback to text-based share if Web Share is unavailable
     const itemsList = lastInvoice.items
       .map((item: any) => `- ${item.name} (x${item.quantity}): ₹${item.total}`)
       .join('%0A');
