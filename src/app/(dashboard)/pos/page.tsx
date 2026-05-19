@@ -365,25 +365,7 @@ export default function POSPage() {
   const handleWhatsAppShare = async () => {
     if (!lastInvoice || !selectedCustomer) return;
     
-    try {
-      // Try using the Web Share API first (best for mobile)
-      const doc = generatePDF(lastInvoice, selectedCustomer);
-      const pdfBlob = doc.output('blob');
-      const pdfFile = new File([pdfBlob], `${lastInvoice.invoiceNumber || 'Invoice'}.pdf`, { type: 'application/pdf' });
-
-      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-        await navigator.share({
-          files: [pdfFile],
-          title: `Invoice #${lastInvoice.invoiceNumber}`,
-          text: `Hello ${selectedCustomer.name}, here is your invoice from New Duke & Duchess Salon.`,
-        });
-        return;
-      }
-    } catch (error) {
-      console.error("Error sharing PDF:", error);
-    }
-
-    // Fallback to text-based share if Web Share is unavailable
+    // Create text-based invoice message
     const itemsList = lastInvoice.items
       .map((item: any) => `- ${item.name} (x${item.quantity}): ₹${item.total}`)
       .join('%0A');
@@ -398,6 +380,7 @@ export default function POSPage() {
     });
 
     const message = `*NEW DUKE %26 DUCHESS INVOICE*%0A%0AHello ${selectedCustomer.name},%0A%0AThank you for visiting us. Your invoice details are below:%0A%0A*Invoice:* ${lastInvoice.invoiceNumber}%0A*Date %26 Time:* ${dateTime}%0A%0A*Items:*%0A${itemsList}%0A%0A*Total Amount:* ₹${lastInvoice.total.toFixed(2)}%0A%0A_Thank you, Visit Again!_`;
+    
     const whatsappUrl = `https://wa.me/91${selectedCustomer.phone}?text=${message}`;
     window.open(whatsappUrl, '_blank');
   };
