@@ -7,6 +7,29 @@ type Params = Promise<{ id: string }>;
 export async function PUT(req: Request, segmentData: { params: Params }) {
   try {
     const body = await req.json();
+    
+    // Enforce name prefixes based on category
+    if (body.category && typeof body.name === 'string') {
+      const cat = body.category.toUpperCase();
+      let name = body.name.trim();
+      
+      // Remove any existing incorrect prefixes so we can apply the right one if category changed
+      const prefixesToRemove = ['MEN- ', 'WOMEN- ', 'MEN-', 'WOMEN-', 'DUKE- ', 'DUCHESS- ', 'DUKE-', 'DUCHESS-'];
+      for (const prefix of prefixesToRemove) {
+        if (name.toUpperCase().startsWith(prefix)) {
+          name = name.substring(prefix.length).trim();
+          break;
+        }
+      }
+      
+      if (cat.startsWith('MEN')) {
+        name = 'DUKE- ' + name;
+      } else if (cat.startsWith('WOMEN')) {
+        name = 'DUCHESS- ' + name;
+      }
+      body.name = name;
+    }
+
     await connectToDatabase();
     
     const params = await segmentData.params;
