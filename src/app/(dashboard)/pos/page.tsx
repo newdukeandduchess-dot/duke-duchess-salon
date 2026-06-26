@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toPng } from "html-to-image";
+import { toJpeg } from "html-to-image";
 import { InvoiceReceipt } from "@/components/InvoiceReceipt";
 import { useRef } from "react";
 
@@ -209,9 +209,10 @@ export default function POSPage() {
     
     try {
       const element = invoiceRef.current;
-      const dataUrl = await toPng(element, {
+      const dataUrl = await toJpeg(element, {
         pixelRatio: 2, 
-        backgroundColor: "#ffffff"
+        backgroundColor: "#ffffff",
+        quality: 0.8
       });
       
       const pdf = new jsPDF({
@@ -224,7 +225,7 @@ export default function POSPage() {
       const imgProps = pdf.getImageProperties(dataUrl);
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, "JPEG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Invoice_${lastInvoice.invoiceNumber || 'INV'}.pdf`);
     } catch (err: any) {
       console.error("Failed to generate PDF", err);
