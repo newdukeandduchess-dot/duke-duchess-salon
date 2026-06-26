@@ -6,7 +6,7 @@ import { Loader2, MapPin, Phone, User, Scissors, Star, Check, Download } from "l
 import { Button } from "@/components/ui/button";
 import NextImage from "next/image";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { Playfair_Display, Inter, Great_Vibes } from "next/font/google";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -50,14 +50,11 @@ export default function PublicBillPage() {
     
     try {
       const element = invoiceRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff"
+      const dataUrl = await toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
       });
       
-      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -65,9 +62,10 @@ export default function PublicBillPage() {
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Invoice_${invoice.invoiceNumber}.pdf`);
     } catch (err) {
       console.error("Failed to generate PDF", err);

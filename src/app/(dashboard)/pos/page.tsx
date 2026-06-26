@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { InvoiceReceipt } from "@/components/InvoiceReceipt";
 import { useRef } from "react";
 
@@ -209,14 +209,11 @@ export default function POSPage() {
     
     try {
       const element = invoiceRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2, 
-        useCORS: true,
-        logging: false,
+      const dataUrl = await toPng(element, {
+        pixelRatio: 2, 
         backgroundColor: "#ffffff"
       });
       
-      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -224,9 +221,10 @@ export default function POSPage() {
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Invoice_${lastInvoice.invoiceNumber || 'INV'}.pdf`);
     } catch (err: any) {
       console.error("Failed to generate PDF", err);
