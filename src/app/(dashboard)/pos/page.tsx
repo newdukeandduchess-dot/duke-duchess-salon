@@ -33,6 +33,9 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import html2canvas from "html2canvas";
+import { InvoiceReceipt } from "@/components/InvoiceReceipt";
+import { useRef } from "react";
 
 type CartItem = {
   id?: string;
@@ -74,7 +77,8 @@ export default function POSPage() {
   // Success Dialog State
   const [lastInvoice, setLastInvoice] = useState<any>(null);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-  const [logoBase64, setLogoBase64] = useState<string>("");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   // Fetch Catalog
   useEffect(() => {
@@ -99,17 +103,6 @@ export default function POSPage() {
     };
     fetchCatalog();
 
-    // Pre-load logo for PDF
-    const img = new Image();
-    img.src = "/salon-logo.png";
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      ctx?.drawImage(img, 0, 0);
-      setLogoBase64(canvas.toDataURL("image/png"));
-    };
   }, []);
 
   // Customer Search Logic
@@ -209,157 +202,42 @@ export default function POSPage() {
   const taxAmount = (taxableAmount * taxPercent) / 100;
   const total = taxableAmount + taxAmount;
 
-  // PDF Generation Function (manual table, no autoTable plugin)
-  const generatePDF = (invoiceData: any, customer: any) => {
-    const doc = new jsPDF();
-    const pageW = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    const rowH = 8;
+  // PDF Generation Function
+  const generatePDF = async () => {
+    if (!invoiceRef.current || !lastInvoice || !selectedCustomer) return;
+    setIsGeneratingPDF(true);
+    
+    try {
+      const element = invoiceRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2, 
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff"
+      });
+      
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
 
-    // ── Header ─────────────────────────────────────────────
-    let y = 0;
-    if (logoBase64) {
-      doc.addImage(logoBase64, "PNG", (pageW - 40) / 2, 10, 40, 40);
-      y = 55;
-    } else {
-      doc.setFontSize(20);
-      doc.setTextColor(180, 140, 40);
-      doc.text("NEW DUKE & DUCHESS", pageW / 2, 20, { align: 'center' });
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text("Professional Salon & Spa Services", pageW / 2, 27, { align: 'center' });
-      y = 32;
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Invoice_${lastInvoice.invoiceNumber || 'INV'}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF", err);
+      toast.error("Failed to generate PDF");
+    } finally {
+      setIsGeneratingPDF(false);
     }
-
-    doc.setDrawColor(180, 140, 40);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageW - margin, y);
-
-    // ── Invoice meta ───────────────────────────────────────
-    y += 8;
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-    doc.text(`Invoice No: ${invoiceData.invoiceNumber || 'INV-TEMP'}`, margin, y);
-    const dateStr = new Date(invoiceData.createdAt || Date.now()).toLocaleString('en-IN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    doc.text(`Date: ${dateStr}`, pageW - margin, y, { align: 'right' });
-
-    // ── Bill To ────────────────────────────────────────────
-    y += 10;
-    doc.setFontSize(9);
-    doc.setTextColor(100);
-    doc.text("BILL TO", margin, y);
-    y += 7;
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    doc.text(customer.name || "", margin, y);
-    y += 6;
-    doc.setFontSize(9);
-    doc.setTextColor(80);
-    doc.text(customer.phone || "", margin, y);
-
-    // ── Table header ───────────────────────────────────────
-    y += 9;
-    const tableStartY = y;
-    const colW = [70, 30, 20, 30, 30]; // Service, Stylist, Qty, Price, Total
-    const cols = [
-      margin, 
-      margin + colW[0], 
-      margin + colW[0] + colW[1], 
-      margin + colW[0] + colW[1] + colW[2],
-      margin + colW[0] + colW[1] + colW[2] + colW[3]
-    ];
-
-    doc.setFillColor(180, 140, 40);
-    doc.rect(margin, y, pageW - margin * 2, rowH, 'F');
-    doc.setTextColor(255);
-    doc.setFontSize(10);
-    doc.text("ITEM / SERVICE", margin + 3, y + 5);
-    doc.text("STYLIST", cols[1] + 3, y + 5);
-    doc.text("QTY", cols[2] + 3, y + 5);
-    doc.text("PRICE", cols[3] + 3, y + 5);
-    doc.text("TOTAL", cols[4] + 3, y + 5);
-    y += rowH;
-
-    // ── Table rows ─────────────────────────────────────────
-    doc.setTextColor(0);
-    invoiceData.items.forEach((item: any, idx: number) => {
-      const fillColor = idx % 2 === 0 ? [248, 245, 235] : [255, 255, 255];
-      doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
-      doc.rect(margin, y, pageW - margin * 2, rowH, 'F');
-
-      doc.setTextColor(0);
-      doc.setFontSize(9);
-      const displayName = item.notes ? `${item.name} (${item.notes})` : item.name;
-      doc.text(displayName.substring(0, 35), margin + 3, y + 5);
-      doc.text(item.staffCode || "-", cols[1] + 3, y + 5);
-      doc.text(item.quantity.toString(), cols[2] + 3, y + 5);
-      doc.text(item.price.toFixed(2), cols[3] + 3, y + 5);
-      doc.text(item.total.toFixed(2), cols[4] + 3, y + 5);
-      y += rowH;
-    });
-
-    // Draw outer border
-    doc.setDrawColor(200);
-    doc.setLineWidth(0.3);
-    doc.rect(margin, tableStartY, pageW - margin * 2, y - tableStartY);
-
-    // ── Summary ────────────────────────────────────────────
-    y += 8;
-    const sumLabelX = 125;
-    const sumValX = pageW - margin;
-
-    doc.setFontSize(9);
-    doc.setTextColor(80);
-    doc.text("Subtotal:", sumLabelX, y);
-    doc.text(`Rs. ${Number(invoiceData.subtotal).toFixed(2)}`, sumValX, y, { align: 'right' });
-    y += 7;
-
-    if (Number(invoiceData.discount) > 0) {
-      doc.text(`Discount (${discountPercent}%):`, sumLabelX, y);
-      doc.text(`- Rs. ${Number(invoiceData.discount).toFixed(2)}`, sumValX, y, { align: 'right' });
-      y += 7;
-    }
-
-    doc.text(`GST (${taxPercent}%):`, sumLabelX, y);
-    doc.text(`Rs. ${Number(invoiceData.tax).toFixed(2)}`, sumValX, y, { align: 'right' });
-    y += 3;
-
-    doc.setDrawColor(180, 140, 40);
-    doc.line(sumLabelX, y, sumValX, y);
-    y += 6;
-
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text("Grand Total:", sumLabelX, y);
-    doc.setTextColor(180, 140, 40);
-    doc.text(`Rs. ${Number(invoiceData.total).toFixed(2)}`, sumValX, y, { align: 'right' });
-
-    y += 12;
-    doc.setFontSize(10);
-    doc.setTextColor(80);
-    doc.text(`Payment Method: ${invoiceData.paymentMethod?.toUpperCase() || 'CASH'}`, margin, y);
-
-    // ── Footer ─────────────────────────────────────────────
-    y += 20;
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.text("Thank you for choosing New Duke & Duchess!", pageW / 2, y, { align: 'center' });
-    doc.text("We look forward to seeing you again!", pageW / 2, y + 6, { align: 'center' });
-
-    return doc;
   };
 
   const handleDownloadPDF = () => {
-    if (!lastInvoice || !selectedCustomer) return;
-    const doc = generatePDF(lastInvoice, selectedCustomer);
-    doc.save(`${lastInvoice.invoiceNumber || 'Invoice'}.pdf`);
+    generatePDF();
   };
 
   const handleWhatsAppShare = async () => {
@@ -848,8 +726,10 @@ export default function POSPage() {
                 variant="outline" 
                 className="h-12 border-2 gap-2 hover:bg-slate-50 font-bold"
                 onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
               >
-                <Download className="h-4 w-4" /> Download PDF
+                {isGeneratingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {isGeneratingPDF ? "Generating..." : "Download PDF"}
               </Button>
               <Button 
                 variant="outline" 
@@ -880,6 +760,16 @@ export default function POSPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden Invoice Container for PDF generation */}
+      {lastInvoice && selectedCustomer && (
+        <div className="fixed top-0 left-[-9999px] z-[-10]">
+          <InvoiceReceipt 
+            invoice={{ ...lastInvoice, customer: selectedCustomer }} 
+            invoiceRef={invoiceRef} 
+          />
+        </div>
+      )}
     </div>
   );
 }
