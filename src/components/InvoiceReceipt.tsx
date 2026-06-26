@@ -1,6 +1,6 @@
 import React from "react";
 import { Playfair_Display, Inter, Great_Vibes } from "next/font/google";
-import { MapPin, Phone, User, Scissors, Star, Check, Instagram, Facebook, MessageCircle } from "lucide-react";
+import { MapPin, Phone, User, Scissors, Star, Check } from "lucide-react";
 import NextImage from "next/image";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -264,9 +264,9 @@ export function InvoiceReceipt({ invoice, invoiceRef }: InvoiceReceiptProps) {
         <div className="text-center space-y-4">
           <div className="text-[#cca354] font-bold text-xs uppercase tracking-widest">FOLLOW US</div>
           <div className="flex justify-center gap-3">
-            <div className="bg-black text-white p-1.5 rounded-full"><Instagram className="h-4 w-4" /></div>
-            <div className="bg-black text-white p-1.5 rounded-full"><Facebook className="h-4 w-4" /></div>
-            <div className="bg-black text-white p-1.5 rounded-full"><MessageCircle className="h-4 w-4" /></div>
+            <div className="bg-black text-[#cca354] h-7 w-7 flex items-center justify-center rounded-full text-[10px] font-bold">IG</div>
+            <div className="bg-black text-[#cca354] h-7 w-7 flex items-center justify-center rounded-full text-[10px] font-bold">FB</div>
+            <div className="bg-black text-[#cca354] h-7 w-7 flex items-center justify-center rounded-full text-[10px] font-bold">WA</div>
           </div>
         </div>
 
