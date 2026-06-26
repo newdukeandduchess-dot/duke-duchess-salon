@@ -1,7 +1,7 @@
 import React from "react";
 import { Playfair_Display, Inter, Great_Vibes } from "next/font/google";
 import { MapPin, Phone, User, Scissors, Star, Check } from "lucide-react";
-import NextImage from "next/image";
+
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
 const inter = Inter({ subsets: ["latin"] });
@@ -33,7 +33,7 @@ export function InvoiceReceipt({ invoice, invoiceRef }: InvoiceReceiptProps) {
       <div className="flex gap-8 items-start mt-4">
         {/* Logo Box */}
         <div className="bg-black rounded-lg p-6 border border-[#cca354] shadow-sm flex flex-col items-center justify-center w-[220px] h-[220px]">
-          <NextImage src="/salon-logo.png" alt="Logo" width={120} height={100} className="object-contain" />
+          <img src="/salon-logo.png" alt="Logo" width={120} height={100} className="object-contain" crossOrigin="anonymous" />
           <div className={`text-center mt-4 text-[#cca354] uppercase leading-tight ${playfair.className}`}>
             <div className="text-lg">NEW DUKE & DUCHESS</div>
             <div className="text-sm tracking-widest mt-1">UNISEX SALON</div>

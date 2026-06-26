@@ -763,7 +763,7 @@ export default function POSPage() {
 
       {/* Hidden Invoice Container for PDF generation */}
       {lastInvoice && selectedCustomer && (
-        <div className="fixed top-0 left-[-9999px] z-[-10]">
+        <div className="fixed top-0 left-0 opacity-0 pointer-events-none z-[-50]">
           <InvoiceReceipt 
             invoice={{ ...lastInvoice, customer: selectedCustomer }} 
             invoiceRef={invoiceRef} 
