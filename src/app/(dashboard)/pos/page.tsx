@@ -228,9 +228,9 @@ export default function POSPage() {
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Invoice_${lastInvoice.invoiceNumber || 'INV'}.pdf`);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to generate PDF", err);
-      toast.error("Failed to generate PDF");
+      toast.error(`Failed to generate PDF: ${err?.message || 'Unknown error'}`);
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -763,7 +763,7 @@ export default function POSPage() {
 
       {/* Hidden Invoice Container for PDF generation */}
       {lastInvoice && selectedCustomer && (
-        <div className="fixed top-0 left-0 pointer-events-none z-[-50] w-[800px]">
+        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '800px' }}>
           <InvoiceReceipt 
             invoice={{ ...lastInvoice, customer: selectedCustomer }} 
             invoiceRef={invoiceRef} 
