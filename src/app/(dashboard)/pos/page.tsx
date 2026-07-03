@@ -256,7 +256,7 @@ export default function POSPage() {
       hour12: true 
     });
 
-    const message = `*NEW DUKE %26 DUCHESS INVOICE*%0A%0AHello ${selectedCustomer.name},%0A%0AThank you for visiting us. Your invoice details are below:%0A%0A*Invoice:* ${lastInvoice.invoiceNumber}%0A*Date %26 Time:* ${dateTime}%0A%0A*Items:*%0A${itemsList}%0A%0A*Total Amount:* ₹${lastInvoice.total.toFixed(2)}%0A%0A_Thank you, Visit Again!_`;
+    const message = `*NEW DUKE %26 DUCHESS INVOICE*%0A%0AHello ${selectedCustomer.name},%0A%0AThank you for visiting us. Your invoice details are below:%0A%0A*Invoice:* ${lastInvoice.invoiceNumber}%0A*Date %26 Time:* ${dateTime}%0A%0A*Items:*%0A${itemsList}%0A%0A*Total Amount:* ₹${lastInvoice.total.toFixed(2)}%0A%0A_(Thank you for joining the New Duke %26 Duchess family ❤️ We look forward to welcoming you again!)_`;
     
     const whatsappUrl = `https://wa.me/91${selectedCustomer.phone}?text=${message}`;
     window.open(whatsappUrl, '_blank');
