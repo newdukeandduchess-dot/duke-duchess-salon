@@ -345,7 +345,7 @@ export function InvoiceReceipt({ invoice, invoiceRef }: InvoiceReceiptProps) {
             Thank You! ♡
           </div>
           <div className="text-[9px] sm:text-[10px] text-[#525252] leading-tight mt-1.5">
-            We truly appreciate your support.<br/>We look forward to seeing you again!
+            Thank you for joining the New Duke & Duchess family ❤️ We truly appreciate your support and look forward to seeing you again! ⭐
           </div>
         </div>
       </div>
